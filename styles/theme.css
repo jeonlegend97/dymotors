@@ -1,0 +1,72 @@
+/**
+ * DY모터스 CSS Custom Properties (Design Tokens)
+ * Source: Figma - https://www.figma.com/design/1WxGVW8YwoNzMlDsWgG44h/DY모터스
+ * Generated: 2026-04-16
+ *
+ * Tailwind에서 'var(--color-*)' 형태로 참조됩니다.
+ * 헥스 코드는 이 파일에서만 단 한 번 선언합니다.
+ */
+
+@layer base {
+  :root {
+    /* ─────────────────────────────────────────
+       Colors
+    ───────────────────────────────────────── */
+
+    /* Primary — Figma 변수: "Primary" */
+    --color-primary:        #D5282C;
+    --color-primary-hover:  #B82025;   /* primary -10% lightness */
+    --color-primary-light:  #FAE9E9;   /* primary tint, 배경용 */
+
+    /* Neutral */
+    --color-white:          #FFFFFF;
+    --color-black:          #111111;
+    --color-gray-50:        #F9F9F9;
+    --color-gray-100:       #F2F2F2;
+    --color-gray-200:       #E5E5E5;
+    --color-gray-300:       #CCCCCC;
+    --color-gray-400:       #999999;
+    --color-gray-500:       #666666;
+    --color-gray-600:       #444444;
+    --color-gray-700:       #333333;
+    --color-gray-800:       #222222;
+    --color-gray-900:       #111111;
+
+    /* ─────────────────────────────────────────
+       Typography
+    ───────────────────────────────────────── */
+
+    --font-sans: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    --font-mono: 'Inter', monospace;
+
+    /* Font Sizes (rem, 16px base) */
+    --text-display:  8.75rem;   /* 140px */
+    --text-h1:       3.25rem;   /* 52px  */
+    --text-h2:       3rem;      /* 48px  */
+    --text-h3:       2rem;      /* 32px  */
+    --text-h4:       1.75rem;   /* 28px  */
+    --text-h5:       1.5rem;    /* 24px  */
+    --text-body-xl:  1.25rem;   /* 20px  */
+    --text-body-lg:  1.125rem;  /* 18px  */
+    --text-body:     1rem;      /* 16px  */
+    --text-body-sm:  0.875rem;  /* 14px  */
+    --text-caption:  0.75rem;   /* 12px  */
+
+    /* Line Heights */
+    --leading-none:   1;
+    --leading-tight:  1.4;
+    --leading-snug:   1.6;
+    --leading-relaxed:1.8;
+
+    /* Letter Spacing */
+    --tracking-tight: -0.025em;
+    --tracking-normal: 0;
+
+    /* ─────────────────────────────────────────
+       Spacing / Layout
+    ───────────────────────────────────────── */
+
+    --max-width-desktop: 1920px;
+    --max-width-content: 1280px;
+  }
+}
