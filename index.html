@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DY모터스 — 수입차 전문 정비</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" as="style" crossorigin
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="styles/theme.css">
+
+  <style>
+  /* ══════════════════════════════════════
+     RESET & BASE
+  ══════════════════════════════════════ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-sans);
+    color: #111;
+    background: #fff;
+    overflow-x: hidden;
+  }
+  img { display: block; max-width: 100%; }
+  a { text-decoration: none; color: inherit; }
+  ul { list-style: none; }
+
+  /* ══════════════════════════════════════
+     SCROLL REVEAL  (IntersectionObserver)
+  ══════════════════════════════════════ */
+  [data-reveal] {
+    opacity: 0;
+    transition:
+      opacity  .85s cubic-bezier(.22,1,.36,1),
+      transform .85s cubic-bezier(.22,1,.36,1);
+  }
+  [data-reveal="up"]    { transform: translateY(48px); }
+  [data-reveal="left"]  { transform: translateX(-56px); }
+  [data-reveal="right"] { transform: translateX(56px); }
+  [data-reveal="scale"] { transform: scale(.94); }
+  [data-reveal].in-view { opacity: 1; transform: none; }
+
+  /* delay helpers */
+  .d1 { transition-delay: .1s; }
+  .d2 { transition-delay: .22s; }
+  .d3 { transition-delay: .34s; }
+  .d4 { transition-delay: .46s; }
+
+  /* ══════════════════════════════════════
+     LAYOUT
+  ══════════════════════════════════════ */
+  .wrap { width: 1280px; margin: 0 auto; }
+
+  /* ══════════════════════════════════════
+     BUTTONS
+  ══════════════════════════════════════ */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 56px; padding: 0 32px; border-radius: 8px; border: none;
+    font-family: var(--font-sans); font-size: 16px; font-weight: 600;
+    letter-spacing: -.025em; cursor: pointer;
+    transition: opacity .2s, transform .2s;
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--color-primary); color: #fff; transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+  .btn-white  { background: #fff;    color: #181818; }
+  .btn-dark   { background: #181818; color: #fff; }
+
+  /* ══════════════════════════════════════
+     GNB
+  ══════════════════════════════════════ */
+  .gnb {
+    position: fixed; inset: 0 0 auto 0; height: 80px;
+    background: rgba(255,255,255,.8); backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(0,0,0,0);
+    z-index: 200; display: flex; align-items: center; padding: 0 60px;
+    transition: background .3s, border-color .3s, box-shadow .3s;
+  }
+  .gnb.scrolled {
+    background: rgba(255,255,255,.97);
+    border-bottom-color: rgba(0,0,0,.06);
+    box-shadow: 0 2px 20px rgba(0,0,0,.06);
+  }
+  .gnb__inner { width: 100%; display: flex; align-items: center; justify-content: space-between; }
+  .gnb__logo  { font-size: 28px; font-weight: 800; line-height: 1; letter-spacing: -.03em; }
+  .gnb__logo span { color: var(--color-primary); }
+  .gnb__nav { display: flex; gap: 40px; }
+  .gnb__nav a {
+    font-size: 18px; font-weight: 500; color: #333;
+    transition: color .2s;
+  }
+  .gnb__nav a:hover { color: var(--color-primary); }
+
+  /* ══════════════════════════════════════
+     HERO  (Figma: x=60, y=80, 1800×800, r=24)
+  ══════════════════════════════════════ */
+  .hero-wrap {
+    margin-top: 80px;
+    padding: 0 60px;       /* 좌우 60px 여백 → 카드 1800px */
+    background: #fff;
+  }
+  .hero {
+    position: relative; height: 800px;
+    background: #181818; overflow: hidden;
+    border-radius: 24px;
+  }
+
+  /* 배경 이미지 레이어 */
+  .hero__bg { position: absolute; inset: 0; }
+  .hero__bg img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover; object-position: center;
+    opacity: .5;
+  }
+  /* Figma 그라디언트: 상→하 (rgba(0,0,0,.1) 24% → black 109%) */
+  .hero__bg-grad {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,.1) 23.75%, #000 108.56%);
+  }
+
+  /* 콘텐츠: Figma 하단 배치 (버튼 하단 ~99px 여백) */
+  .hero__content {
+    position: relative; z-index: 2;
+    padding: 0 80px 80px;          /* 카드 기준 left=80px, bottom=80px */
+    height: 100%;
+    display: flex; flex-direction: column; justify-content: flex-end;
+  }
+  .hero__avatars { display: flex; margin-bottom: 24px; }
+  .hero__avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    border: 2.5px solid rgba(255,255,255,.6); margin-left: -10px;
+    flex-shrink: 0; object-fit: cover; display: block;
+  }
+  .hero__avatar:first-child { margin-left: 0; }
+  .hero__title {
+    font-size: 52px; font-weight: 700; color: #fff;
+    line-height: 1.4; letter-spacing: -.025em;
+    margin-bottom: 20px; max-width: 640px;
+  }
+  .hero__desc {
+    font-size: 20px; font-weight: 400; color: rgba(255,255,255,.75);
+    line-height: 1.6; letter-spacing: -.025em;
+    margin-bottom: 40px; max-width: 500px;
+  }
+
+  /* ══════════════════════════════════════
+     PAIN POINTS — sticky scroll storytelling
+  ══════════════════════════════════════ */
+  .pain-scroll { height: 400vh; position: relative; }
+  .pain-sticky {
+    position: sticky; top: 0; height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    background: #fff; overflow: hidden;
+  }
+  /* 버블: 전체 뷰포트 절대 오버레이 */
+  .pain__bubbles { position: absolute; inset: 0; pointer-events: none; }
+  .bubble-pos { position: absolute; pointer-events: auto; }
+  .bubble-pos-1 { left: calc(50% - 580px); top: 22%; }
+  .bubble-pos-2 { left: calc(50% + 200px); top: 14%; }
+  .bubble-pos-3 { left: calc(50% + 100px); top: 62%; }
+  .bubble-pos-4 { left: calc(50% - 490px); top: 66%; }
+
+  /* 버블 등장 래퍼 */
+  .pain-bubble {
+    opacity: 0; transform: translateY(16px);
+    transition: opacity .6s cubic-bezier(.22,1,.36,1), transform .6s cubic-bezier(.22,1,.36,1);
+  }
+  .pain-bubble.visible { opacity: 1; transform: translateY(0); }
+
+  /* 버블 비주얼 — 흰 배경 + 그림자 (Figma: shadow 4 4 20 rgba(0,0,0,.1)) */
+  .bubble {
+    display: inline-flex; align-items: center;
+    padding: 18px 24px;
+    background: #fff;
+    box-shadow: 4px 4px 20px rgba(0,0,0,.10), 0 1px 6px rgba(0,0,0,.05);
+    border-radius: 8px;
+    font-size: 20px; font-weight: 500; color: #181818; white-space: nowrap;
+    letter-spacing: -.025em;
+    animation: float 6s ease-in-out infinite;
+  }
+  .bubble-pos-1 .bubble { animation-duration: 5.5s; animation-delay: 0s; }
+  .bubble-pos-2 .bubble { animation-duration: 6.5s; animation-delay: .8s; }
+  .bubble-pos-3 .bubble { animation-duration: 6s;   animation-delay: .3s; }
+  .bubble-pos-4 .bubble { animation-duration: 5s;   animation-delay: 1.4s; }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-10px); }
+  }
+
+  /* 타이틀 중앙 영역 */
+  .pain__center { position: relative; z-index: 2; text-align: center; }
+  .pain-title-wrap { position: relative; height: 90px; }
+  .pain-title {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, calc(-50% + 24px));
+    width: max-content; max-width: 900px;
+    opacity: 0; margin: 0;
+    transition: opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1);
+  }
+  .pain-title.show    { opacity: 1; transform: translate(-50%, -50%); }
+  .pain-title-1.pushed { opacity: 0; transform: translate(-50%, -50%); }
+
+  .pain__heading {
+    font-size: 48px; font-weight: 700;
+    letter-spacing: -.025em; line-height: 1.4; white-space: nowrap;
+  }
+  .pain__heading .pain-red { color: var(--color-primary); }
+  .pain__sub {
+    font-size: 48px; font-weight: 700; color: #181818;
+    letter-spacing: -.025em; line-height: 1.4; white-space: nowrap;
+  }
+  .pain__sub strong { color: var(--color-primary); }
+
+  /* ══════════════════════════════════════
+     ABOUT — 3-STAGE SCROLL REVEAL
+  ══════════════════════════════════════ */
+  .about { padding: 120px 0 80px; background: #fff; }
+
+  .about__intro {
+    text-align: center; margin-bottom: 100px;
+    max-width: 800px; margin-left: auto; margin-right: auto;
+    padding: 0 40px;
+  }
+  .about__intro-title {
+    font-size: 48px; font-weight: 700; color: #181818;
+    letter-spacing: -.025em; line-height: 1.5;
+  }
+  /* Figma: 빨간 배경 + 흰 텍스트 하이라이트 */
+  .hl {
+    color: #fff;
+    background: var(--color-primary);
+    border-radius: 8px; padding: 2px 8px;
+    display: inline;
+  }
+
+  /* 각 Feature 블록 */
+  .feature {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 60px; align-items: center;
+    margin-bottom: 120px; padding: 0 320px;
+    /* overflow hidden for clip on child reveal */
+  }
+  .feature:last-child { margin-bottom: 0; }
+
+  .feature__img {
+    width: 100%; aspect-ratio: 738/450;
+    border-radius: 20px; overflow: hidden;
+  }
+  .feature__img img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform .6s cubic-bezier(.25,.46,.45,.94);
+  }
+  .feature__img:hover img { transform: scale(1.04); }
+
+  .feature--rev .feature__img { order: -1; }
+
+  .feature__label {
+    font-size: 20px; font-weight: 800;
+    color: var(--color-primary);
+    margin-bottom: 14px; letter-spacing: 0;
+  }
+  .feature__title {
+    font-size: 32px; font-weight: 700; color: #181818;
+    letter-spacing: -.025em; line-height: 1.4; margin-bottom: 20px;
+    max-width: 420px;
+  }
+  .feature__desc {
+    font-size: 18px; font-weight: 400; color: #555;
+    line-height: 1.75; letter-spacing: -.025em; margin-bottom: 32px;
+    max-width: 400px;
+  }
+  .feature__cta {
+    display: inline-flex; align-items: center; gap: 10px;
+    height: 56px; padding: 0 20px;
+    background: #fff; border: 1.5px solid #ddd; border-radius: 8px;
+    font-size: 16px; font-weight: 600; color: #181818;
+    letter-spacing: -.025em; cursor: pointer;
+    transition: border-color .25s, transform .25s;
+  }
+  .feature__cta:hover { border-color: #181818; transform: translateX(2px); }
+  .feature__cta-arr {
+    display: inline-block; width: 6px; height: 6px;
+    border-right: 2px solid currentColor; border-top: 2px solid currentColor;
+    transform: rotate(45deg); flex-shrink: 0;
+  }
+
+  /* ══════════════════════════════════════
+     STATS  (카운트업 + 배경 이미지)
+  ══════════════════════════════════════ */
+  .stats {
+    position: relative; height: 600px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .stats__bg { position: absolute; inset: 0; }
+  .stats__bg img { width: 100%; height: 100%; object-fit: cover; }
+  .stats__overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,.6), rgba(0,0,0,.93));
+  }
+  .stats__content { position: relative; z-index: 2; width: 1280px; text-align: center; }
+  .stats__title {
+    font-size: 48px; font-weight: 700; color: #fff;
+    letter-spacing: -.025em; line-height: 1.4; margin-bottom: 60px;
+    white-space: nowrap;
+  }
+  .stats__grid {
+    display: flex; justify-content: center; gap: 0;
+  }
+  .stat {
+    display: flex; flex-direction: column; gap: 14px; align-items: flex-start;
+    padding: 0 60px;
+    border-right: 1px solid rgba(255,255,255,.12);
+  }
+  .stat:first-child { border-left: 1px solid rgba(255,255,255,.12); }
+  .stat__label {
+    font-size: 18px; font-weight: 400; color: #aaa;
+    letter-spacing: -.025em;
+  }
+  .stat__value {
+    font-size: 52px; font-weight: 700; color: #fff;
+    letter-spacing: -.025em; line-height: 1;
+  }
+  .stat__value span { color: var(--color-primary); }
+
+  /* ══════════════════════════════════════
+     SERVICES
+  ══════════════════════════════════════ */
+  .services { padding: 120px 0; }
+  .services__title {
+    font-size: 48px; font-weight: 700; color: #181818;
+    letter-spacing: -.025em; line-height: 1.4;
+    margin-bottom: 60px; padding: 0 320px;
+    max-width: 1920px;
+  }
+  .services__grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 20px; padding: 0 320px;
+  }
+  .svc-card {
+    position: relative; border-radius: 24px; overflow: hidden; height: 663px;
+    transition: transform .4s cubic-bezier(.25,.46,.45,.94), box-shadow .4s ease;
+    cursor: pointer;
+  }
+  .svc-card:hover {
+    transform: translateY(-12px);
+    box-shadow: 0 32px 64px rgba(0,0,0,.28);
+  }
+  .svc-card__bg { position: absolute; inset: 0; }
+  .svc-card__bg img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform .6s cubic-bezier(.25,.46,.45,.94);
+  }
+  .svc-card:hover .svc-card__bg img { transform: scale(1.05); }
+  .svc-card__overlay { position: absolute; inset: 0; background: rgba(0,0,0,.8); }
+  .svc-card__content { position: relative; z-index: 2; padding: 52px; }
+  .svc-card__head { display: flex; align-items: center; gap: 14px; margin-bottom: 40px; }
+  .svc-card__icon { width: 48px; height: 48px; opacity: .85; }
+  .svc-card__cat {
+    font-size: 20px; font-weight: 700; color: #fff;
+    letter-spacing: -.025em;
+  }
+  .svc-card__list { display: flex; flex-direction: column; gap: 16px; }
+  .svc-card__item { display: flex; align-items: center; gap: 14px; }
+  .svc-card__bullet {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--color-primary); flex-shrink: 0;
+  }
+  .svc-card__text {
+    font-size: 18px; font-weight: 400;
+    color: rgba(255,255,255,.82); letter-spacing: -.025em;
+  }
+
+  /* ══════════════════════════════════════
+     REVIEWS  (infinite marquee)
+  ══════════════════════════════════════ */
+  .reviews { padding: 100px 0; overflow: hidden; }
+  .reviews__title {
+    font-size: 48px; font-weight: 700; color: #181818;
+    letter-spacing: -.025em; line-height: 1.4;
+    margin-bottom: 60px; text-align: center;
+    max-width: 700px; margin-left: auto; margin-right: auto;
+  }
+  .marquee-wrap { display: flex; flex-direction: column; gap: 16px; }
+  .marquee { display: flex; gap: 16px; }
+  .marquee__track {
+    display: flex; gap: 16px; flex-shrink: 0;
+    animation: mq-left 36s linear infinite;
+  }
+  .marquee--rev .marquee__track { animation: mq-right 36s linear infinite; }
+  @keyframes mq-left  { from { transform: translateX(0); }    to { transform: translateX(-50%); } }
+  @keyframes mq-right { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+  .marquee:hover .marquee__track { animation-play-state: paused; }
+  .rv-card {
+    flex-shrink: 0; width: 418px;
+    background: #fff; border-radius: 12px;
+    padding: 32px 24px; box-shadow: 4px 4px 20px rgba(0,0,0,.08);
+    border: 1px solid rgba(0,0,0,.04);
+  }
+  .rv-card__name {
+    font-size: 20px; font-weight: 700; color: #111;
+    letter-spacing: -.025em; margin-bottom: 16px;
+  }
+  .rv-card__text {
+    font-size: 16px; font-weight: 400; color: #666;
+    line-height: 1.7; letter-spacing: -.025em;
+  }
+
+  /* ══════════════════════════════════════
+     FAQ  (accordion)
+  ══════════════════════════════════════ */
+  .faq { padding: 100px 0; background: #fff; }
+  .faq__title {
+    font-size: 48px; font-weight: 700; color: #181818;
+    letter-spacing: -.025em; text-align: center; margin-bottom: 60px;
+  }
+  .faq__list {
+    width: 1280px; margin: 0 auto;
+    border: 1px solid #ccc; border-radius: 10px; overflow: hidden;
+  }
+  .faq-item { border-bottom: 1px solid #ccc; background: #fff; }
+  .faq-item:last-child { border-bottom: none; }
+  .faq-item__hd {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px; min-height: 80px; cursor: pointer;
+    transition: background .2s;
+  }
+  .faq-item__hd:hover { background: #fafafa; }
+  .faq-item.open .faq-item__hd { background: #fff; }
+  .faq-item__q { display: flex; align-items: center; gap: 12px; }
+  .faq-item__num {
+    font-size: 20px; font-weight: 600; color: #999;
+    letter-spacing: -.025em; width: 30px;
+  }
+  .faq-item.open .faq-item__num { color: var(--color-primary); }
+  .faq-item__txt {
+    font-size: 20px; font-weight: 600; color: #181818;
+    letter-spacing: -.025em;
+  }
+  .faq-item__icon {
+    width: 48px; height: 48px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .faq-item__chevron {
+    width: 11px; height: 11px;
+    border-right: 2.5px solid #666; border-bottom: 2.5px solid #666;
+    transform: rotate(45deg) translate(-2px,-2px);
+    transition: transform .3s cubic-bezier(.22,1,.36,1);
+  }
+  .faq-item.open .faq-item__chevron {
+    transform: rotate(-135deg) translate(-2px,-2px);
+  }
+  .faq-item__body {
+    overflow: hidden; max-height: 0;
+    transition: max-height .4s cubic-bezier(.22,1,.36,1);
+  }
+  .faq-item.open .faq-item__body { max-height: 200px; }
+  .faq-item__ans {
+    padding: 4px 20px 28px 62px;
+    font-size: 16px; color: #666;
+    line-height: 1.7; letter-spacing: -.025em;
+  }
+
+  /* ══════════════════════════════════════
+     CTA SECTION
+  ══════════════════════════════════════ */
+  .cta-sec {
+    position: relative; height: 700px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cta-sec__bg { position: absolute; inset: 0; }
+  .cta-sec__bg img { width: 100%; height: 100%; object-fit: cover; }
+  .cta-sec__overlay {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,.24) 3%, rgba(0,0,0,.82) 100%),
+      linear-gradient(90deg, rgba(0,0,0,.5), rgba(0,0,0,.5));
+  }
+  .cta-sec__content {
+    position: relative; z-index: 2; text-align: center;
+    padding: 0 40px;
+  }
+  .cta-sec__title {
+    font-size: 48px; font-weight: 700; color: #fff;
+    letter-spacing: -.025em; line-height: 1.4; margin-bottom: 20px;
+    max-width: 700px; margin-left: auto; margin-right: auto;
+  }
+  .cta-sec__desc {
+    font-size: 20px; font-weight: 400; color: rgba(255,255,255,.78);
+    line-height: 1.8; letter-spacing: -.025em; margin-bottom: 48px;
+    max-width: 580px; margin-left: auto; margin-right: auto;
+  }
+  .cta-sec__btns { display: flex; gap: 10px; justify-content: center; }
+
+  /* ══════════════════════════════════════
+     FOOTER
+  ══════════════════════════════════════ */
+  footer { background: #111; padding: 64px 0 52px; }
+  .footer__inner {
+    width: 1280px; margin: 0 auto;
+    display: flex; justify-content: space-between; gap: 40px;
+    align-items: flex-start;
+  }
+  .footer__left { display: flex; flex-direction: column; }
+  .footer__logo {
+    font-size: 20px; font-weight: 800; color: #fff;
+    letter-spacing: -.025em; margin-bottom: 14px;
+  }
+  .footer__logo span { color: var(--color-primary); }
+  .footer__info {
+    font-size: 14px; color: #666; line-height: 1.8;
+    letter-spacing: -.025em;
+  }
+  .footer__copy {
+    font-size: 13px; color: #444; letter-spacing: -.025em; margin-top: 28px;
+  }
+  .footer__right { display: flex; flex-direction: column; gap: 28px; align-items: flex-end; }
+  .footer__hours-lbl {
+    font-size: 16px; font-weight: 700; color: #fff;
+    letter-spacing: -.025em; margin-bottom: 10px;
+  }
+  .footer__hours-row {
+    display: flex; gap: 20px; justify-content: flex-end; margin-bottom: 5px;
+  }
+  .footer__hours-row span { font-size: 14px; color: #777; letter-spacing: -.025em; }
+  .footer__phone-lbl {
+    font-size: 16px; font-weight: 700; color: #fff;
+    letter-spacing: -.025em; margin-bottom: 6px;
+  }
+  .footer__phone {
+    font-size: 28px; font-weight: 700; color: #fff;
+    letter-spacing: -.025em;
+  }
+  .footer__links { display: flex; gap: 16px; }
+  .footer__link {
+    font-size: 14px; color: #777; letter-spacing: -.025em;
+    text-decoration: underline; cursor: pointer;
+    transition: color .2s;
+  }
+  .footer__link:hover { color: #ccc; }
+  </style>
+</head>
+<body>
+
+<!-- ══ GNB ══════════════════════════════ -->
+<header class="gnb" id="gnb">
+  <div class="gnb__inner">
+    <a href="/" class="gnb__logo"><span>DY</span> MOTORS</a>
+    <nav>
+      <ul class="gnb__nav">
+        <li><a href="#about">DY모터스 소개</a></li>
+        <li><a href="#services">정비 사례</a></li>
+        <li><a href="#process">정비 프로세스</a></li>
+        <li><a href="#contact">예약 및 문의</a></li>
+      </ul>
+    </nav>
+    <a href="tel:0325766636" class="btn btn-dark">전화 문의</a>
+  </div>
+</header>
+
+<!-- ══ HERO ═════════════════════════════ -->
+<!-- Figma: x=60, y=80, w=1800, h=800, r=24 -->
+<div class="hero-wrap">
+  <section class="hero">
+    <div class="hero__bg">
+      <img src="https://www.figma.com/api/mcp/asset/f25fabf1-f524-4cda-a7a6-529265b9cfd3" alt="DY모터스 수입차">
+      <div class="hero__bg-grad"></div>
+    </div>
+    <!-- 하단 배치 (Figma 텍스트 y≈433~725, 카드 800px) -->
+    <div class="hero__content">
+      <div class="hero__avatars" data-reveal="up">
+        <img class="hero__avatar" src="https://www.figma.com/api/mcp/asset/78d6681b-1ba7-471b-b778-12220d86a0f2" alt="">
+        <img class="hero__avatar" src="https://www.figma.com/api/mcp/asset/14405dcf-0fb5-4cdc-af9b-b87a7c7e37ad" alt="">
+        <img class="hero__avatar" src="https://www.figma.com/api/mcp/asset/18ee5252-4f5b-4ad6-879e-f6e9cbae0db7" alt="">
+        <img class="hero__avatar" src="https://www.figma.com/api/mcp/asset/87e1d2d2-ec8d-4a0a-82ed-0d2f560632fd" alt="">
+        <img class="hero__avatar" src="https://www.figma.com/api/mcp/asset/6ae71de7-0944-46d9-b4f2-79323da71343" alt="">
+      </div>
+      <h1 class="hero__title" data-reveal="up" style="transition-delay:.1s">
+        청라에서 수입차 맡길 곳,<br>아직도 검색으로 찾고 계신가요?
+      </h1>
+      <p class="hero__desc" data-reveal="up" style="transition-delay:.22s">
+        수입차 전문 정비사가 매뉴얼 정비의 정점을 선보입니다.<br>
+        과잉 정비 없는 진정성을 DY모터스에서 경험하세요.
+      </p>
+      <div data-reveal="up" style="transition-delay:.34s">
+        <a href="#contact" class="btn btn-white">지금 예약하기</a>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ══ PAIN POINTS ═══════════════════════ -->
+<div class="pain-scroll" id="pain-scroll">
+  <div class="pain-sticky">
+    <!-- 버블: 뷰포트 전체 오버레이 -->
+    <div class="pain__bubbles">
+      <div class="bubble-pos bubble-pos-1">
+        <div class="pain-bubble" data-bubble="0"><div class="bubble">과잉 정비는 아닐까 걱정돼요</div></div>
+      </div>
+      <div class="bubble-pos bubble-pos-2">
+        <div class="pain-bubble" data-bubble="1"><div class="bubble">수입차 제대로 다룰 줄 아는 곳 맞나요?</div></div>
+      </div>
+      <div class="bubble-pos bubble-pos-3">
+        <div class="pain-bubble" data-bubble="2"><div class="bubble">견적이 맞는지 모르겠어요</div></div>
+      </div>
+      <div class="bubble-pos bubble-pos-4">
+        <div class="pain-bubble" data-bubble="3"><div class="bubble">맡긴 뒤에도 제대로 된 건지 확인이 어려워요</div></div>
+      </div>
+    </div>
+    <!-- 타이틀: 정중앙, 교체 효과 -->
+    <div class="pain__center">
+      <div class="pain-title-wrap">
+        <h2 class="pain-title pain-title-1 pain__heading"><span class="pain-red">수입차 정비,</span> 맡기기 전에 항상 불안합니다</h2>
+        <h2 class="pain-title pain-title-2 pain__sub">그래서 믿을 수 있는, <strong>DY모터스</strong>가 있습니다.</h2>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ABOUT  — 스크롤 3단 전환 ═══════════ -->
+<section class="about" id="about">
+  <!-- 섹션 헤딩 -->
+  <div class="about__intro" data-reveal="up">
+    <h2 class="about__intro-title">
+      DY모터스는 단순한 정비가 아니라<br>
+      <span class="hl">기준 있는 정비를</span> 제공합니다
+    </h2>
+  </div>
+
+  <!-- STAGE 1 : 텍스트 좌 / 이미지 우 -->
+  <div class="feature" data-stage="1">
+    <div class="feature__text" data-reveal="left">
+      <p class="feature__label">Point 01</p>
+      <h3 class="feature__title">제조사 매뉴얼 준수</h3>
+      <p class="feature__desc">단 하나의 볼트도 허투루 조이지 않습니다. 각 브랜드별 규정 토크값에 맞춘 정교한 체결로 차량의 본질적인 컨디션을 회복합니다.</p>
+      <a href="#about" class="feature__cta">DY모터스 소개 <span class="feature__cta-arr"></span></a>
+    </div>
+    <div class="feature__img" data-reveal="right">
+      <img src="https://www.figma.com/api/mcp/asset/ba84a12e-be70-4577-9bee-12912c346d05" alt="제조사 매뉴얼 준수">
+    </div>
+  </div>
+
+  <!-- STAGE 2 : 이미지 좌 / 텍스트 우 -->
+  <div class="feature feature--rev" data-stage="2">
+    <div class="feature__text" data-reveal="right">
+      <p class="feature__label">Point 02</p>
+      <h3 class="feature__title">투명한 정비 프로세스</h3>
+      <p class="feature__desc">정직한 견적은 기본입니다. 정비 전 과정의 데이터와 상태를 고객분들에게 투명하게 공유하여 신뢰를 쌓습니다.</p>
+      <a href="#process" class="feature__cta">정비 과정 보기 <span class="feature__cta-arr"></span></a>
+    </div>
+    <div class="feature__img" data-reveal="left">
+      <img src="https://www.figma.com/api/mcp/asset/5ef7d8a3-7219-4e2c-ab4e-9aa7397802ec" alt="투명한 정비 프로세스">
+    </div>
+  </div>
+
+  <!-- STAGE 3 : 텍스트 좌 / 이미지 우 -->
+  <div class="feature" data-stage="3">
+    <div class="feature__text" data-reveal="left">
+      <p class="feature__label">Point 03</p>
+      <h3 class="feature__title">하이엔드 케어</h3>
+      <p class="feature__desc">모든 오일류는 엄선된 합성유만을 사용합니다. 사고 수리부터 하체 관리까지, 공식 센터 이상의 만족을 드립니다.</p>
+      <a href="#services" class="feature__cta">정비 사례 확인 <span class="feature__cta-arr"></span></a>
+    </div>
+    <div class="feature__img" data-reveal="right">
+      <img src="https://www.figma.com/api/mcp/asset/7d1f0639-c692-4b83-bc72-0b2ebb594022" alt="하이엔드 케어">
+    </div>
+  </div>
+</section>
+
+<!-- ══ STATS  — 카운트업 ════════════════ -->
+<section class="stats">
+  <div class="stats__bg">
+    <img src="https://www.figma.com/api/mcp/asset/200ad66a-ac6c-48a1-a973-85f02a242936" alt="">
+    <div class="stats__overlay"></div>
+  </div>
+  <div class="stats__content">
+    <h2 class="stats__title" data-reveal="up">숫자로 증명하는 DY모터스 정비 만족도</h2>
+    <div class="stats__grid">
+      <div class="stat" data-reveal="up" style="transition-delay:.05s">
+        <span class="stat__label">업력</span>
+        <span class="stat__value" data-count="12" data-suffix="년+">12년+</span>
+      </div>
+      <div class="stat" data-reveal="up" style="transition-delay:.15s">
+        <span class="stat__label">누적 정비 차량 수</span>
+        <span class="stat__value" data-count="12000" data-suffix="대+" data-comma="true">12,000대+</span>
+      </div>
+      <div class="stat" data-reveal="up" style="transition-delay:.25s">
+        <span class="stat__label">누적 후기</span>
+        <span class="stat__value" data-count="1500" data-suffix="건+">1500건+</span>
+      </div>
+      <div class="stat" data-reveal="up" style="transition-delay:.35s">
+        <span class="stat__label">재방문 고객</span>
+        <span class="stat__value" data-count="89" data-suffix="%">89%</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SERVICES ══════════════════════════ -->
+<section class="services" id="services">
+  <h2 class="services__title" data-reveal="up">DY모터스의 전문 작업 영역</h2>
+  <div class="services__grid">
+    <div class="svc-card" data-reveal="up" style="transition-delay:.08s">
+      <div class="svc-card__bg">
+        <img src="https://www.figma.com/api/mcp/asset/33992913-9ba8-4232-8092-9767a7049e66" alt="">
+        <div class="svc-card__overlay"></div>
+      </div>
+      <div class="svc-card__content">
+        <div class="svc-card__head">
+          <img class="svc-card__icon" src="https://www.figma.com/api/mcp/asset/c2363e9b-9c59-4dde-8ea1-d0444ecff0f2" alt="">
+          <span class="svc-card__cat">핵심 서비스</span>
+        </div>
+        <ul class="svc-card__list">
+          <li class="svc-card__item"><span class="svc-card__bullet"></span><span class="svc-card__text">사고 수리</span></li>
+          <li class="svc-card__item"><span class="svc-card__bullet"></span><span class="svc-card__text">하체 관리</span></li>
+          <li class="svc-card__item"><span class="svc-card__bullet"></span><span class="svc-card__text">수입차 전문 정비</span></li>
+          <li class="svc-card__item"><span class="svc-card__bullet"></span><span class="svc-card__text">국산차 전문 정비</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="svc-card" data-reveal="up" style="transition-delay:.2s">
+      <div class="svc-card__bg">
+        <img src="https://www.figma.com/api/mcp/asset/765f52d2-55ff-4cc4-8255-9fe20df5c1f5" alt="">
+        <div class="svc-card__overlay"></div>
+      </div>
+      <div class="svc-card__content">
+        <div class="svc-card__head">
+          <img class="svc-card__icon" src="https://www.figma.com/api/mcp/asset/36561b96-639b-4ad6-94bb-108bddd68836" alt="">
+          <span class="svc-card__cat">메인터넌스</span>
+        </div>
+        <ul class="svc-card__list">
+          <li class="svc-card__item"><span class="svc-card__bullet"></span><span class="svc-card__text">합성 오일 패키지</span></li>
+          <li class="svc-card__item"><span class="svc-card__bullet"></span><span class="svc-card__text">브레이크 케어</span></li>
+          <li class="svc-card__item"><span class="svc-card__bullet"></span><span class="svc-card__text">타이어 교체</span></li>
+          <li class="svc-card__item"><span class="svc-card__bullet"></span><span class="svc-card__text">엔진/미션 정밀 진단</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ REVIEWS ════════════════════════════ -->
+<section class="reviews">
+  <h2 class="reviews__title" data-reveal="up">정직한 실력과 후기로 증명합니다</h2>
+  <div class="marquee-wrap">
+    <!-- Row 1: → left -->
+    <div class="marquee">
+      <div class="marquee__track">
+        <div class="rv-card"><p class="rv-card__name">유**님</p><p class="rv-card__text">스파크 공기압 센서 4짝 다 교체하러 방문했는데, 예상했던 것보다 훨씬 저렴하게 할 수 있어서 너무 만족했습니다. 꼼꼼하게 챙겨주셔서 정말 감사했어요.</p></div>
+        <div class="rv-card"><p class="rv-card__name">김**님</p><p class="rv-card__text">BMW 오일 교체 맡겼는데 공식 딜러보다 훨씬 친절하고 가격도 합리적이었습니다. 다음에도 꼭 올게요. 정비사님이 매우 전문적이세요.</p></div>
+        <div class="rv-card"><p class="rv-card__name">이**님</p><p class="rv-card__text">벤츠 브레이크 교체 후기입니다. 예약도 빠르고 작업도 깔끔하게 해주셨어요. 정비 전 상태를 사진으로 공유해주셔서 신뢰가 갔습니다.</p></div>
+        <div class="rv-card"><p class="rv-card__name">박**님</p><p class="rv-card__text">아우디 하체 점검 받았습니다. 과잉 정비 없이 꼭 필요한 것만 짚어주셔서 오히려 걱정이 줄었어요. 재방문 의사 100% 있습니다.</p></div>
+        <div class="rv-card"><p class="rv-card__name">정**님</p><p class="rv-card__text">타이어 교체 + 얼라이먼트 받았는데 작업 퀄리티가 정말 좋았어요. 직원분들도 친절하시고 대기 공간도 깨끗했습니다.</p></div>
+      </div>
+      <div class="marquee__track" aria-hidden="true">
+        <div class="rv-card"><p class="rv-card__name">유**님</p><p class="rv-card__text">스파크 공기압 센서 4짝 다 교체하러 방문했는데, 예상했던 것보다 훨씬 저렴하게 할 수 있어서 너무 만족했습니다. 꼼꼼하게 챙겨주셔서 정말 감사했어요.</p></div>
+        <div class="rv-card"><p class="rv-card__name">김**님</p><p class="rv-card__text">BMW 오일 교체 맡겼는데 공식 딜러보다 훨씬 친절하고 가격도 합리적이었습니다. 다음에도 꼭 올게요. 정비사님이 매우 전문적이세요.</p></div>
+        <div class="rv-card"><p class="rv-card__name">이**님</p><p class="rv-card__text">벤츠 브레이크 교체 후기입니다. 예약도 빠르고 작업도 깔끔하게 해주셨어요. 정비 전 상태를 사진으로 공유해주셔서 신뢰가 갔습니다.</p></div>
+        <div class="rv-card"><p class="rv-card__name">박**님</p><p class="rv-card__text">아우디 하체 점검 받았습니다. 과잉 정비 없이 꼭 필요한 것만 짚어주셔서 오히려 걱정이 줄었어요. 재방문 의사 100% 있습니다.</p></div>
+        <div class="rv-card"><p class="rv-card__name">정**님</p><p class="rv-card__text">타이어 교체 + 얼라이먼트 받았는데 작업 퀄리티가 정말 좋았어요. 직원분들도 친절하시고 대기 공간도 깨끗했습니다.</p></div>
+      </div>
+    </div>
+    <!-- Row 2: → right -->
+    <div class="marquee marquee--rev">
+      <div class="marquee__track">
+        <div class="rv-card"><p class="rv-card__name">최**님</p><p class="rv-card__text">수입차 정비 처음이라 많이 걱정했는데, 원인과 비용을 투명하게 설명해주셔서 안심했어요. 청라 오시면 꼭 여기 오세요!</p></div>
+        <div class="rv-card"><p class="rv-card__name">강**님</p><p class="rv-card__text">미니 쿠퍼 엔진오일 교체 후 소음이 사라졌습니다. 같은 증상으로 다른 곳 다녀왔는데 여기서 바로 잡아주셨어요. 진짜 전문가십니다.</p></div>
+        <div class="rv-card"><p class="rv-card__name">오**님</p><p class="rv-card__text">포르쉐 정기 점검 맡겼어요. 공식 서비스센터 수준의 꼼꼼함인데 비용은 훨씬 합리적입니다. 앞으로 단골로 다닐게요.</p></div>
+        <div class="rv-card"><p class="rv-card__name">홍**님</p><p class="rv-card__text">가족 모두가 여기서 정비받고 있어요. 항상 친절하고 정직한 진단 덕분에 믿고 맡길 수 있습니다. 주변에도 항상 추천합니다.</p></div>
+        <div class="rv-card"><p class="rv-card__name">조**님</p><p class="rv-card__text">Mercedes GLE 미션 오일 교체 받았습니다. 작업 전 상태 체크 사진도 공유해주시고 작업 완료 후에도 꼼꼼히 설명해주셨어요.</p></div>
+      </div>
+      <div class="marquee__track" aria-hidden="true">
+        <div class="rv-card"><p class="rv-card__name">최**님</p><p class="rv-card__text">수입차 정비 처음이라 많이 걱정했는데, 원인과 비용을 투명하게 설명해주셔서 안심했어요. 청라 오시면 꼭 여기 오세요!</p></div>
+        <div class="rv-card"><p class="rv-card__name">강**님</p><p class="rv-card__text">미니 쿠퍼 엔진오일 교체 후 소음이 사라졌습니다. 같은 증상으로 다른 곳 다녀왔는데 여기서 바로 잡아주셨어요. 진짜 전문가십니다.</p></div>
+        <div class="rv-card"><p class="rv-card__name">오**님</p><p class="rv-card__text">포르쉐 정기 점검 맡겼어요. 공식 서비스센터 수준의 꼼꼼함인데 비용은 훨씬 합리적입니다. 앞으로 단골로 다닐게요.</p></div>
+        <div class="rv-card"><p class="rv-card__name">홍**님</p><p class="rv-card__text">가족 모두가 여기서 정비받고 있어요. 항상 친절하고 정직한 진단 덕분에 믿고 맡길 수 있습니다. 주변에도 항상 추천합니다.</p></div>
+        <div class="rv-card"><p class="rv-card__name">조**님</p><p class="rv-card__text">Mercedes GLE 미션 오일 교체 받았습니다. 작업 전 상태 체크 사진도 공유해주시고 작업 완료 후에도 꼼꼼히 설명해주셨어요.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FAQ ════════════════════════════════ -->
+<section class="faq" id="process">
+  <h2 class="faq__title" data-reveal="up">FAQ</h2>
+  <div class="faq__list" data-reveal="up" style="transition-delay:.1s">
+
+    <div class="faq-item open">
+      <div class="faq-item__hd" onclick="toggleFaq(this)">
+        <div class="faq-item__q">
+          <span class="faq-item__num">01</span>
+          <span class="faq-item__txt">예약 없이도 방문 가능한가요?</span>
+        </div>
+        <div class="faq-item__icon"><div class="faq-item__chevron"></div></div>
+      </div>
+      <div class="faq-item__body">
+        <p class="faq-item__ans">방문 전 전화 또는 카카오톡으로 예약하시면 대기 없이 바로 점검을 받으실 수 있습니다. 급한 경우 당일 방문도 가능하지만, 예약 고객을 우선 안내해 드립니다.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-item__hd" onclick="toggleFaq(this)">
+        <div class="faq-item__q">
+          <span class="faq-item__num">02</span>
+          <span class="faq-item__txt">수입차 비용은 비싼가요?</span>
+        </div>
+        <div class="faq-item__icon"><div class="faq-item__chevron"></div></div>
+      </div>
+      <div class="faq-item__body">
+        <p class="faq-item__ans">공식 딜러 대비 30~50% 저렴하게 동일한 품질의 정비를 받으실 수 있습니다. 모든 부품은 정품 또는 OEM 부품만 사용하며, 사전에 투명한 견적을 공유해 드립니다.</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-item__hd" onclick="toggleFaq(this)">
+        <div class="faq-item__q">
+          <span class="faq-item__num">03</span>
+          <span class="faq-item__txt">국산차도 정비 가능한가요?</span>
+        </div>
+        <div class="faq-item__icon"><div class="faq-item__chevron"></div></div>
+      </div>
+      <div class="faq-item__body">
+        <p class="faq-item__ans">네, 국산차 정비도 가능합니다. 수입차 전문 기술력을 바탕으로 국산차도 동일한 퀄리티로 정비해 드립니다.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══ CTA ════════════════════════════════ -->
+<section class="cta-sec" id="contact">
+  <div class="cta-sec__bg">
+    <img src="https://www.figma.com/api/mcp/asset/206f8d2c-2fcb-4f8e-b0af-d6880775c005" alt="DY모터스 정비소">
+    <div class="cta-sec__overlay"></div>
+  </div>
+  <div class="cta-sec__content">
+    <h2 class="cta-sec__title" data-reveal="up">정비는 가격보다 신뢰가 먼저입니다</h2>
+    <p class="cta-sec__desc" data-reveal="up" style="transition-delay:.12s">
+      한 번의 잘못된 정비는 더 큰 비용으로 돌아옵니다<br>
+      처음부터 제대로 진단하고 정확하게 정비하는 것이 중요합니다
+    </p>
+    <div class="cta-sec__btns" data-reveal="up" style="transition-delay:.24s">
+      <a href="#contact" class="btn btn-white">지금 예약하기</a>
+      <a href="tel:0325766636" class="btn btn-dark">전화 상담하기</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ════════════════════════════ -->
+<footer>
+  <div class="footer__inner">
+    <div class="footer__left">
+      <div class="footer__logo"><span>DY</span> MOTORS</div>
+      <p class="footer__info">
+        인천 서구 로봇랜드로249번길 22 DY모터스<br>
+        대표자: 권용규 &nbsp;|&nbsp; 사업자등록번호: 000-00-00000
+      </p>
+      <p class="footer__copy">Copyright © DY Motors All rights reserved.</p>
+    </div>
+    <div class="footer__right">
+      <div>
+        <p class="footer__hours-lbl">영업시간</p>
+        <div class="footer__hours-row">
+          <span>월 ~ 금</span><span>10:00 - 19:00</span>
+          <span>휴게시간</span><span>12:00 - 13:00</span>
+        </div>
+        <div class="footer__hours-row">
+          <span>토요일</span><span>10:00 - 17:00</span>
+          <span>일요일</span><span>정기휴무</span>
+        </div>
+      </div>
+      <div>
+        <p class="footer__phone-lbl">대표번호</p>
+        <p class="footer__phone">032-576-6636</p>
+      </div>
+      <div class="footer__links">
+        <span class="footer__link">블로그 바로가기</span>
+        <span class="footer__link">인스타그램 바로가기</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ══════════════════════════════════════════
+   1. GNB — 스크롤 감지
+══════════════════════════════════════════ */
+const gnb = document.getElementById('gnb');
+window.addEventListener('scroll', () => {
+  gnb.classList.toggle('scrolled', window.scrollY > 40);
+}, { passive: true });
+
+
+/* ══════════════════════════════════════════
+   2. SCROLL REVEAL — IntersectionObserver
+══════════════════════════════════════════ */
+const revealObs = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    entry.target.classList.toggle('in-view', entry.isIntersecting);
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+
+document.querySelectorAll('[data-reveal]').forEach(el => revealObs.observe(el));
+
+
+/* ══════════════════════════════════════════
+   3. STATS 카운트업 애니메이션
+══════════════════════════════════════════ */
+function runCountUp(el) {
+  const end      = parseInt(el.dataset.count, 10);
+  const suffix   = el.dataset.suffix  || '';
+  const useComma = el.dataset.comma === 'true';
+  const dur      = 1800;  // ms
+  let startTime  = null;
+
+  function step(ts) {
+    if (!startTime) startTime = ts;
+    const p       = Math.min((ts - startTime) / dur, 1);
+    const eased   = 1 - Math.pow(1 - p, 3);          // ease-out cubic
+    const current = Math.floor(eased * end);
+    el.textContent = useComma
+      ? current.toLocaleString('ko-KR') + suffix
+      : current + suffix;
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+const countEls  = document.querySelectorAll('[data-count]');
+const countObs  = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) runCountUp(entry.target);
+  });
+}, { threshold: 0.5 });
+
+countEls.forEach(el => countObs.observe(el));
+
+
+/* ══════════════════════════════════════════
+   5. PAIN SCROLL — 순차 등장 + 타이틀 교체 (양방향)
+══════════════════════════════════════════ */
+(function() {
+  const painScroll = document.getElementById('pain-scroll');
+  if (!painScroll) return;
+  const bubbles = Array.from(painScroll.querySelectorAll('[data-bubble]'))
+    .sort((a, b) => +a.dataset.bubble - +b.dataset.bubble);
+  const title1 = painScroll.querySelector('.pain-title-1');
+  const title2 = painScroll.querySelector('.pain-title-2');
+  const TOTAL  = 6; // 버블 4 + 타이틀 2
+
+  function updatePain() {
+    const top      = painScroll.getBoundingClientRect().top;
+    const scrolled = -top;
+    const range    = painScroll.offsetHeight - window.innerHeight;
+    if (range <= 0) return;
+    const progress = Math.max(0, Math.min(1, scrolled / range));
+
+    // 버블 순차 등장 / 역방향 숨김 (반복 가능)
+    bubbles.forEach((el, i) => {
+      el.classList.toggle('visible', progress >= (i + 1) / (TOTAL + 1));
+    });
+
+    // 타이틀 교체: t4(5/7≈71%) → 첫 타이틀, t5(6/7≈86%) → 두 번째가 밀어냄
+    const t4 = progress >= 5 / (TOTAL + 1);
+    const t5 = progress >= 6 / (TOTAL + 1);
+    title1.classList.toggle('show',   t4 && !t5);
+    title1.classList.toggle('pushed', t5);
+    title2.classList.toggle('show',   t5);
+  }
+
+  window.addEventListener('scroll', updatePain, { passive: true });
+  updatePain();
+})();
+
+
+/* ══════════════════════════════════════════
+   4. FAQ 아코디언
+══════════════════════════════════════════ */
+function toggleFaq(header) {
+  const item   = header.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+</script>
+</body>
+</html>
